@@ -1,26 +1,36 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { useAuth } from '@/lib/auth-context';
+import { useToast } from '@/lib/toast-context';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function SignupPage() {
-  const { signup } = useAuth();
+  const { signup, user, loading } = useAuth();
+  const toast = useToast();
   const router = useRouter();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace('/');
+    }
+  }, [user, loading, router]);
+
+  if (loading || user) {
+    return null;
+  }
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError('');
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      toast.error('Passwords do not match');
       return;
     }
 
@@ -29,14 +39,14 @@ export default function SignupPage() {
       await signup(name, email, password);
       router.push('/');
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Signup failed');
+      toast.error(err instanceof Error ? err.message : 'Signup failed');
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-57px)] items-center justify-center px-4">
+    <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-lg border border-zinc-200 dark:border-zinc-800 p-8">
           <h1 className="text-2xl font-bold text-center text-zinc-900 dark:text-white mb-2">
@@ -46,16 +56,10 @@ export default function SignupPage() {
             Sign up to get started
           </p>
 
-          {error && (
-            <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm">
-              {error}
-            </div>
-          )}
-
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
-                Name
+                Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -69,7 +73,7 @@ export default function SignupPage() {
 
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
-                Email
+                Email <span className="text-red-500">*</span>
               </label>
               <input
                 type="email"
@@ -83,7 +87,7 @@ export default function SignupPage() {
 
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
-                Password
+                Password <span className="text-red-500">*</span>
               </label>
               <input
                 type="password"
@@ -98,7 +102,7 @@ export default function SignupPage() {
 
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
-                Confirm Password
+                Confirm Password <span className="text-red-500">*</span>
               </label>
               <input
                 type="password"
