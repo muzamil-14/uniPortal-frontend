@@ -14,7 +14,7 @@ interface Course {
   instructor: string;
   price: number;
   creditHours: number;
-  schedule: string | null;
+  departments: string[];
   isActive: boolean;
   createdAt: string;
 }
@@ -120,11 +120,11 @@ export default function CourseDetailPage() {
           <span className="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-sm text-zinc-600 dark:text-zinc-400">
             {course.creditHours} Credit Hours
           </span>
-          {course.schedule && (
-            <span className="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-sm text-zinc-600 dark:text-zinc-400">
-              {course.schedule}
+          {course.departments?.length > 0 && course.departments.map((dept) => (
+            <span key={dept} className="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-sm text-zinc-600 dark:text-zinc-400">
+              {dept}
             </span>
-          )}
+          ))}
           <span className={`px-3 py-1.5 rounded-lg text-sm ${
             course.isActive
               ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
@@ -162,7 +162,7 @@ export default function CourseDetailPage() {
           <button
             onClick={handleEnroll}
             disabled={enrolling || !course.isActive}
-            className="px-6 py-2.5 rounded-lg bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-medium hover:bg-zinc-700 dark:hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 text-white font-medium hover:from-indigo-600 hover:to-violet-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md shadow-indigo-500/20 cursor-pointer"
           >
             {enrolling ? 'Enrolling...' : 'Enroll in Course'}
           </button>

@@ -12,10 +12,22 @@ interface Course {
   title: string;
   description: string;
   instructor: string;
+  instructorId: number | null;
   price: number;
   creditHours: number;
-  schedule: string | null;
+  departments: string[];
   isActive: boolean;
+}
+
+interface Teacher {
+  id: number;
+  name: string;
+  email: string;
+}
+
+interface Department {
+  id: number;
+  name: string;
 }
 
 export default function AdminCoursesPage() {
@@ -24,16 +36,18 @@ export default function AdminCoursesPage() {
   const confirm = useConfirm();
   const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<number | null>(null);
 
   // Form state
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [instructor, setInstructor] = useState('');
+  const [instructorId, setInstructorId] = useState<string>('');
   const [price, setPrice] = useState('0');
   const [creditHours, setCreditHours] = useState('3');
-  const [schedule, setSchedule] = useState('');
+  const [selectedDepts, setSelectedDepts] = useState<string[]>([]);
   const [isActive, setIsActive] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -43,8 +57,16 @@ export default function AdminCoursesPage() {
       return;
     }
     if (user) {
-      apiFetch('/courses')
-        .then(setCourses)
+      Promise.all([
+        apiFetch('/courses'),
+        apiFetch('/auth/users'),
+        apiFetch('/departments'),
+      ])
+        .then(([coursesData, usersData, deptsData]) => {
+          setCourses(coursesData);
+          setTeachers(usersData.filter((u: any) => u.role === 'teacher'));
+          setDepartments(deptsData);
+        })
         .catch(() => {})
         .finally(() => setLoading(false));
     }
@@ -53,10 +75,10 @@ export default function AdminCoursesPage() {
   const resetForm = () => {
     setTitle('');
     setDescription('');
-    setInstructor('');
+    setInstructorId('');
     setPrice('0');
     setCreditHours('3');
-    setSchedule('');
+    setSelectedDepts([]);
     setIsActive(true);
     setEditingId(null);
   };
@@ -65,10 +87,10 @@ export default function AdminCoursesPage() {
     setEditingId(course.id);
     setTitle(course.title);
     setDescription(course.description);
-    setInstructor(course.instructor);
+    setInstructorId(course.instructorId ? String(course.instructorId) : '');
     setPrice(String(course.price));
     setCreditHours(String(course.creditHours));
-    setSchedule(course.schedule || '');
+    setSelectedDepts(course.departments || []);
     setIsActive(course.isActive);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -76,13 +98,13 @@ export default function AdminCoursesPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    const body = {
+    const body: any = {
       title,
       description,
-      instructor,
+      instructorId: parseInt(instructorId),
       price: parseFloat(price),
       creditHours: parseInt(creditHours),
-      schedule: schedule || undefined,
+      departments: selectedDepts,
       isActive,
     };
 
@@ -151,32 +173,57 @@ export default function AdminCoursesPage() {
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Title <span className="text-red-500">*</span></label>
             <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white" />
+              className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white outline-none" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Instructor <span className="text-red-500">*</span></label>
-            <input type="text" required value={instructor} onChange={(e) => setInstructor(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white" />
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Teacher <span className="text-red-500">*</span></label>
+            <select required value={instructorId} onChange={(e) => setInstructorId(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white outline-none cursor-pointer">
+              <option value="">Select a teacher...</option>
+              {teachers.map((t) => (
+                <option key={t.id} value={t.id}>{t.name} ({t.email})</option>
+              ))}
+            </select>
           </div>
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Description <span className="text-red-500">*</span></label>
             <textarea required value={description} onChange={(e) => setDescription(e.target.value)} rows={3}
-              className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white" />
+              className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white outline-none" />
           </div>
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Price <span className="text-red-500">*</span></label>
             <input type="number" step="0.01" required value={price} onChange={(e) => setPrice(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white" />
+              className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white outline-none" />
           </div>
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Credit Hours <span className="text-red-500">*</span></label>
             <input type="number" required value={creditHours} onChange={(e) => setCreditHours(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white" />
+              className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white outline-none" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Schedule</label>
-            <input type="text" value={schedule} onChange={(e) => setSchedule(e.target.value)} placeholder="MWF 9:00-10:00"
-              className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white" />
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Departments <span className="text-red-500">*</span></label>
+            <div className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 max-h-36 overflow-y-auto">
+              {departments.map((d) => (
+                <label key={d.id} className="flex items-center gap-2 py-1 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={selectedDepts.includes(d.name)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedDepts((prev) => [...prev, d.name]);
+                      } else {
+                        setSelectedDepts((prev) => prev.filter((n) => n !== d.name));
+                      }
+                    }}
+                    className="w-4 h-4 rounded border-zinc-300 dark:border-zinc-700"
+                  />
+                  <span className="text-sm text-zinc-900 dark:text-white">{d.name}</span>
+                </label>
+              ))}
+              {departments.length === 0 && (
+                <p className="text-sm text-zinc-400 dark:text-zinc-500">No departments available</p>
+              )}
+            </div>
           </div>
           {editingId && (
             <div className="flex items-end">
@@ -189,7 +236,7 @@ export default function AdminCoursesPage() {
           )}
           <div className="md:col-span-2 flex gap-3">
             <button type="submit" disabled={submitting}
-              className="px-5 py-2 rounded-lg bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-medium hover:bg-zinc-700 dark:hover:bg-zinc-200 disabled:opacity-50 transition-colors cursor-pointer">
+              className="px-5 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 text-white font-medium hover:from-indigo-600 hover:to-violet-600 disabled:opacity-50 transition-all shadow-md shadow-indigo-500/20 cursor-pointer">
               {submitting ? 'Saving...' : editingId ? 'Update Course' : 'Add Course'}
             </button>
             {editingId && (
@@ -216,8 +263,7 @@ export default function AdminCoursesPage() {
                 }`}>{course.isActive ? 'Active' : 'Inactive'}</span>
               </div>
               <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                {course.instructor} · {course.creditHours} credits · ${Number(course.price).toFixed(2)}
-                {course.schedule && ` · ${course.schedule}`}
+                {course.instructor} · {course.creditHours} credits · ${Number(course.price).toFixed(2)}{course.departments?.length ? ` · ${course.departments.join(', ')}` : ''}
               </p>
             </div>
             <div className="flex gap-2">

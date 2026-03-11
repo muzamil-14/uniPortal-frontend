@@ -29,6 +29,7 @@ export default function AdminStudentsPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState<string>('all');
 
   useEffect(() => {
     if (!authLoading && (!user || user.role !== 'admin')) {
@@ -61,11 +62,15 @@ export default function AdminStudentsPage() {
 
   const filtered = students.filter(
     (s) =>
-      s.role === 'student' &&
+      (roleFilter === 'all' || s.role === roleFilter) &&
+      s.role !== 'admin' &&
       (s.name.toLowerCase().includes(search.toLowerCase()) ||
         s.email.toLowerCase().includes(search.toLowerCase()) ||
         (s.department || '').toLowerCase().includes(search.toLowerCase())),
   );
+
+  const studentCount = students.filter((s) => s.role === 'student').length;
+  const teacherCount = students.filter((s) => s.role === 'teacher').length;
 
   if (authLoading || loading) {
     return (
@@ -81,15 +86,36 @@ export default function AdminStudentsPage() {
     <div className="max-w-6xl mx-auto px-6 py-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">
-          Manage Students
+          Manage Users
         </h1>
         <input
           type="text"
-          placeholder="Search students..."
+          placeholder="Search users..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="px-4 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white focus:border-transparent outline-none w-full sm:w-72"
+          className="px-4 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white outline-none w-full sm:w-72"
         />
+      </div>
+
+      {/* Role Filter Tabs */}
+      <div className="flex gap-2 mb-6">
+        {[
+          { key: 'all', label: `All (${studentCount + teacherCount})` },
+          { key: 'student', label: `Students (${studentCount})` },
+          { key: 'teacher', label: `Teachers (${teacherCount})` },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setRoleFilter(tab.key)}
+            className={`text-sm px-4 py-2 rounded-lg transition-all duration-200 cursor-pointer ${
+              roleFilter === tab.key
+                ? 'bg-gradient-to-r from-indigo-500 to-violet-500 text-white font-medium shadow-md shadow-indigo-500/20'
+                : 'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:text-indigo-600 dark:hover:text-indigo-400'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
@@ -110,19 +136,29 @@ export default function AdminStudentsPage() {
                   <td className="p-4 font-medium text-zinc-900 dark:text-white">{student.name}</td>
                   <td className="p-4 text-zinc-500 dark:text-zinc-400">{student.email}</td>
                   <td className="p-4">
-                    <select
-                      value={student.department || ''}
-                      onChange={(e) => handleDepartmentChange(student.id, e.target.value)}
-                      className="px-2 py-1 rounded border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white text-sm outline-none cursor-pointer"
-                    >
-                      <option value="">Unassigned</option>
-                      {departments.map((d) => (
-                        <option key={d.id} value={d.name}>{d.name}</option>
-                      ))}
-                    </select>
+                    {student.role === 'student' ? (
+                      <select
+                        value={student.department || ''}
+                        onChange={(e) => handleDepartmentChange(student.id, e.target.value)}
+                        className="px-2 py-1 rounded border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white text-sm outline-none cursor-pointer"
+                      >
+                        <option value="">Unassigned</option>
+                        {departments.map((d) => (
+                          <option key={d.id} value={d.name}>{d.name}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="text-sm text-zinc-400 dark:text-zinc-500">—</span>
+                    )}
                   </td>
-                  <td className="p-4 text-zinc-500 dark:text-zinc-400">
-                    {student.role.toLocaleUpperCase()}
+                  <td className="p-4">
+                    <span className={`text-xs px-2.5 py-1 rounded-full ${
+                      student.role === 'teacher'
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                        : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                    }`}>
+                      {student.role.charAt(0).toUpperCase() + student.role.slice(1)}
+                    </span>
                   </td>
                   <td className="p-4 text-zinc-500 dark:text-zinc-400">
                     {new Date(student.createdAt).toLocaleDateString()}

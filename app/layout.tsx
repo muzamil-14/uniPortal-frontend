@@ -8,6 +8,8 @@ import { ConfirmProvider } from "@/lib/confirm-context";
 import { SidebarProvider } from "@/lib/sidebar-context";
 import Sidebar from "@/components/sidebar";
 import MainContent from "@/components/main-content";
+import RouteGuard from "@/components/route-guard";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,19 +37,23 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}})()` }} />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-zinc-50 dark:bg-zinc-950`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background`}
       >
         <ThemeProvider>
+          <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''}>
           <AuthProvider>
             <ToastProvider>
               <ConfirmProvider>
                 <SidebarProvider>
                   <Sidebar />
-                  <MainContent>{children}</MainContent>
+                  <MainContent>
+                    <RouteGuard>{children}</RouteGuard>
+                  </MainContent>
                 </SidebarProvider>
               </ConfirmProvider>
             </ToastProvider>
           </AuthProvider>
+          </GoogleOAuthProvider>
         </ThemeProvider>
       </body>
     </html>

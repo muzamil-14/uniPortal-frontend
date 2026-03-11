@@ -19,13 +19,15 @@ export default function Sidebar() {
     <Link
       href={href}
       onClick={() => setMobileOpen(false)}
-      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group ${
+      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative ${
         isActive(href)
-          ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-medium'
-          : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white'
+          ? 'bg-gradient-to-r from-indigo-500 to-violet-500 text-white font-medium shadow-md shadow-indigo-500/20 dark:shadow-indigo-500/10'
+          : 'text-zinc-600 dark:text-zinc-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:text-indigo-700 dark:hover:text-indigo-300'
       }`}
     >
-      <span className="text-lg shrink-0 w-5 flex justify-center">{icon}</span>
+      <span className={`text-lg shrink-0 w-5 flex justify-center transition-transform duration-200 group-hover:scale-110 ${
+        isActive(href) ? '' : 'group-hover:text-indigo-500 dark:group-hover:text-indigo-400'
+      }`}>{icon}</span>
       {!collapsed && <span className="text-sm whitespace-nowrap">{label}</span>}
     </Link>
   );
@@ -33,9 +35,9 @@ export default function Sidebar() {
   const sidebarContent = (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-5 border-b border-zinc-200 dark:border-zinc-800">
+      <div className="flex items-center justify-between px-4 py-5 border-b border-card-border">
         {!collapsed && (
-          <Link href="/" onClick={() => setMobileOpen(false)} className="text-xl font-bold text-zinc-900 dark:text-white">
+          <Link href="/" onClick={() => setMobileOpen(false)} className="text-xl font-bold gradient-text">
             TGI
           </Link>
         )}
@@ -73,6 +75,42 @@ export default function Sidebar() {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c0 2 4 3 6 3s6-1 6-3v-5" /></svg>
               )
             }
+            {(user.role === 'student' || user.role === 'teacher') &&
+              navItem('/announcements', 'Announcements',
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
+              )
+            }
+            {user.role === 'student' &&
+              navItem('/my-grades', 'My Grades',
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>
+              )
+            }
+            {user.role === 'student' &&
+              navItem('/attendance', 'Attendance',
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /><path d="M9 14l2 2 4-4" /></svg>
+              )
+            }
+            {user.role === 'teacher' && (
+              <>
+                {!collapsed && (
+                  <div className="pt-4 pb-2 px-3">
+                    <p className="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
+                      Teacher
+                    </p>
+                  </div>
+                )}
+                {collapsed && <div className="my-2 border-t border-zinc-200 dark:border-zinc-800" />}
+                {navItem('/teacher/my-courses', 'My Courses',
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c0 2 4 3 6 3s6-1 6-3v-5" /></svg>
+                )}
+                {navItem('/teacher/grades', 'Grades',
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>
+                )}
+                {navItem('/teacher/attendance', 'Attendance',
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /><path d="M9 14l2 2 4-4" /></svg>
+                )}
+              </>
+            )}
 
             {user.role === 'admin' && (
               <>
@@ -90,9 +128,13 @@ export default function Sidebar() {
                 {navItem('/admin/departments', 'Departments',
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
                 )}
-                {navItem('/admin/students', 'Students',
+                {navItem('/admin/students', 'Users',
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
                 )}
+                {navItem('/admin/announcements', 'Announcements',
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
+                )}
+
               </>
             )}
           </>
@@ -112,7 +154,7 @@ export default function Sidebar() {
       <div className="border-t border-zinc-200 dark:border-zinc-800 p-3 space-y-1">
         <button
           onClick={toggleTheme}
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer"
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-zinc-600 dark:text-zinc-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 hover:text-amber-700 dark:hover:text-amber-300 transition-all duration-200 cursor-pointer group"
           title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
         >
           <span className="text-lg shrink-0 w-5 flex justify-center">
@@ -131,13 +173,13 @@ export default function Sidebar() {
           <Link
             href="/profile"
             onClick={() => setMobileOpen(false)}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
               isActive('/profile')
-                ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-medium'
-                : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white'
+                ? 'bg-gradient-to-r from-indigo-500 to-violet-500 text-white font-medium shadow-md shadow-indigo-500/20 dark:shadow-indigo-500/10'
+                : 'text-zinc-600 dark:text-zinc-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:text-indigo-700 dark:hover:text-indigo-300'
             }`}
           >
-            <span className="w-7 h-7 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center text-xs font-bold text-zinc-700 dark:text-zinc-300 shrink-0">
+            <span className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-xs font-bold text-white shrink-0 ring-2 ring-indigo-200 dark:ring-indigo-800">
               {user.name.charAt(0).toUpperCase()}
             </span>
             {!collapsed && (
@@ -149,7 +191,7 @@ export default function Sidebar() {
           </Link>
           <button
             onClick={() => { logout(); setMobileOpen(false); }}
-            className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-zinc-600 dark:text-zinc-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-colors cursor-pointer`}
+            className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-zinc-600 dark:text-zinc-400 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200 cursor-pointer group`}
           >
             <span className="text-lg shrink-0 w-5 flex justify-center">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
@@ -166,7 +208,7 @@ export default function Sidebar() {
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-[60] w-10 h-10 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-md flex items-center justify-center text-zinc-700 dark:text-zinc-300 cursor-pointer"
+        className="lg:hidden fixed top-4 left-4 z-[60] w-10 h-10 rounded-lg bg-card-bg border border-card-border shadow-md flex items-center justify-center text-zinc-700 dark:text-zinc-300 cursor-pointer"
         aria-label="Open menu"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
@@ -182,7 +224,7 @@ export default function Sidebar() {
 
       {/* Mobile sidebar */}
       <aside
-        className={`lg:hidden fixed top-0 left-0 h-full w-64 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 z-[80] transform transition-transform duration-300 ${
+        className={`lg:hidden fixed top-0 left-0 h-full w-64 bg-sidebar-bg/95 dark:bg-sidebar-bg/95 backdrop-blur-xl border-r border-card-border/80 z-[80] transform transition-transform duration-300 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -199,7 +241,7 @@ export default function Sidebar() {
 
       {/* Desktop sidebar */}
       <aside
-        className={`hidden lg:flex flex-col fixed top-0 left-0 h-full bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 z-40 transition-all duration-300 ${
+        className={`hidden lg:flex flex-col fixed top-0 left-0 h-full bg-sidebar-bg/90 dark:bg-sidebar-bg/90 backdrop-blur-xl border-r border-card-border/80 z-40 transition-all duration-300 ${
           collapsed ? 'w-[68px]' : 'w-60'
         }`}
       >

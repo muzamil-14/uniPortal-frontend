@@ -101,7 +101,7 @@ export default function MyCoursesPage() {
           </p>
           <Link
             href="/courses"
-            className="text-sm px-5 py-2.5 rounded-lg bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-200 transition-colors"
+            className="text-sm px-5 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 text-white hover:from-indigo-600 hover:to-violet-600 transition-all shadow-md shadow-indigo-500/20"
           >
             Browse Courses
           </Link>
@@ -129,18 +129,29 @@ export default function MyCoursesPage() {
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-xs px-2.5 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
-                  {enrollment.status}
+                <span className={`text-xs px-2.5 py-1 rounded-full ${
+                  enrollment.status === 'completed'
+                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                    : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                }`}>
+                  {enrollment.status === 'completed' ? 'Completed' : enrollment.status}
                 </span>
                 <span className="font-bold text-zinc-900 dark:text-white">
                   ${Number(enrollment.course.price).toFixed(2)}
                 </span>
-                <button
-                  onClick={() => handleDrop(enrollment.course.id)}
-                  className="text-xs px-3 py-1.5 rounded-lg border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
-                >
-                  Drop
-                </button>
+                {enrollment.status === 'completed' ? (
+                  <span className="text-xs px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 cursor-not-allowed"
+                    title="Cannot drop a completed course">
+                    Graded
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => handleDrop(enrollment.course.id)}
+                    className="text-xs px-3 py-1.5 rounded-lg border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
+                  >
+                    Drop
+                  </button>
+                )}
               </div>
             </div>
           ))}
