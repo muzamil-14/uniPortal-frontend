@@ -19,6 +19,16 @@ interface Course {
   createdAt: string;
 }
 
+interface Material {
+  id: number;
+  title: string;
+  description: string;
+  fileName: string;
+  fileUrl: string;
+  fileType: string;
+  createdAt: string;
+}
+
 export default function CourseDetailPage() {
   const { user, loading: authLoading } = useAuth();
   const toast = useToast();
@@ -31,6 +41,7 @@ export default function CourseDetailPage() {
   const [loading, setLoading] = useState(true);
   const [enrolled, setEnrolled] = useState(false);
   const [enrolling, setEnrolling] = useState(false);
+  const [materials, setMaterials] = useState<Material[]>([]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -45,7 +56,12 @@ export default function CourseDetailPage() {
       Promise.all(promises)
         .then(([courseData, enrollData]) => {
           setCourse(courseData);
-          if (enrollData) setEnrolled(enrollData.enrolled);
+          if (enrollData) {
+            setEnrolled(enrollData.enrolled);
+            if (enrollData.enrolled) {
+              apiFetch(`/course-materials/course/${courseId}`).then(setMaterials);
+            }
+          }
         })
         .catch(() => router.replace('/courses'))
         .finally(() => setLoading(false));
@@ -170,6 +186,42 @@ export default function CourseDetailPage() {
         </>
         )}
       </div>
+
+      {/* Course Materials (visible to enrolled students) */}
+      {user?.role === 'student' && enrolled && (
+        <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 mt-6">
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">
+            Course Materials ({materials.length})
+          </h2>
+          {materials.length === 0 ? (
+            <p className="text-zinc-500 text-center py-4">No materials uploaded yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {materials.map((m) => (
+                <div key={m.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-9 h-9 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" /><polyline points="13 2 13 9 20 9" /></svg>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm truncate">{m.title}</p>
+                      <p className="text-xs text-zinc-400">{m.fileName} · {new Date(m.createdAt).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  <a
+                    href={`${process.env.NEXT_PUBLIC_API_URL}${m.fileUrl}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 text-sm bg-accent/10 text-accent rounded-lg hover:bg-accent/20 transition-colors shrink-0"
+                  >
+                    Download
+                  </a>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
