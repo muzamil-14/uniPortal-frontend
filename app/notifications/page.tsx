@@ -56,6 +56,7 @@ export default function NotificationsPage() {
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
       );
+      window.dispatchEvent(new Event('notifications-updated'));
     } catch (err: any) {
       toast.error(err.message);
     }
@@ -65,6 +66,7 @@ export default function NotificationsPage() {
     try {
       await apiFetch('/notifications/read-all', { method: 'PATCH' });
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      window.dispatchEvent(new Event('notifications-updated'));
       toast.success('All notifications marked as read');
     } catch (err: any) {
       toast.error(err.message);

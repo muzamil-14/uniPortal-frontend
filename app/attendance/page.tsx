@@ -82,6 +82,19 @@ export default function AttendancePage() {
         </p>
       </div>
 
+      {/* Low Attendance Warning */}
+      {overallTotal > 0 && overallPct < 75 && (
+        <div className="flex items-start gap-3 p-4 mb-6 rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/20">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600 dark:text-red-400 shrink-0 mt-0.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div>
+            <p className="text-sm font-semibold text-red-700 dark:text-red-400">Low Attendance Warning</p>
+            <p className="text-sm text-red-600 dark:text-red-400 mt-0.5">
+              Your overall attendance is {overallPct}%, which is below the required 75% minimum. Please improve your attendance to avoid academic penalties.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Overall Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5">
@@ -201,6 +214,11 @@ export default function AttendancePage() {
                       >
                         {s.percentage}%
                       </span>
+                      {s.percentage < 75 && (
+                        <span className="ml-1.5 inline-flex items-center" title="Below 75% minimum">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}

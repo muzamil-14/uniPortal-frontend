@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/lib/toast-context';
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import CourseSelector from '@/components/course-selector';
 
 interface Course {
   id: number;
@@ -112,25 +113,20 @@ export default function TeacherGradesPage() {
       </h1>
 
       {/* Course Selection */}
-      <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 mb-8">
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-          Select Course
-        </label>
-        <select
-          value={selectedCourse || ''}
-          onChange={(e) => {
-            const val = Number(e.target.value);
-            if (val) loadStudents(val);
+      <div className="mb-8">
+        <CourseSelector
+          courses={courses}
+          selectedCourse={selectedCourse || ''}
+          onSelect={(id) => {
+            if (id) loadStudents(id as number);
+            else {
+              setSelectedCourse(null);
+              setStudents([]);
+            }
           }}
-          className="w-full max-w-md px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white outline-none cursor-pointer"
-        >
-          <option value="">Choose a course...</option>
-          {courses.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.title}
-            </option>
-          ))}
-        </select>
+          label={selectedCourse ? undefined : 'Select Course'}
+          subtitle={selectedCourse ? undefined : 'Choose a course to manage grades'}
+        />
       </div>
 
       {/* Students Grade Table */}

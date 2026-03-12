@@ -11,7 +11,7 @@ const BLOCKED_ROUTES = ['/admin/grades', '/admin/attendance'];
 const ROLE_ROUTES: Record<string, string[]> = {
   admin: ['/admin'],
   teacher: ['/teacher'],
-  student: ['/my-courses', '/my-grades', '/assignments', '/result-card', '/notifications'],
+  student: ['/my-courses', '/my-grades', '/assignments', '/materials', '/result-card', '/notifications', '/quizzes'],
 };
 
 function getRequiredRole(pathname: string): string | null {

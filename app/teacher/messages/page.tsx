@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { apiFetch } from '@/lib/api';
 import { useToast } from '@/lib/toast-context';
+import CourseSelector from '@/components/course-selector';
 
 interface Course {
   id: number;
@@ -11,6 +12,7 @@ interface Course {
 
 interface Student {
   userId: number;
+  status: string;
   user: { id: number; name: string; email: string };
 }
 
@@ -35,7 +37,7 @@ export default function TeacherMessagesPage() {
   useEffect(() => {
     if (selectedCourse) {
       apiFetch(`/enrollments/courses/${selectedCourse}/students`).then((data) => {
-        setStudents(data);
+        setStudents(data.filter((s: Student) => s.status !== 'completed'));
         setSelectedStudents([]);
       });
     } else {
@@ -98,19 +100,13 @@ export default function TeacherMessagesPage() {
         <p className="text-zinc-500 dark:text-zinc-400 mt-1">Send notifications to your students</p>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-2">Select Course</label>
-        <select
-          value={selectedCourse}
-          onChange={(e) => setSelectedCourse(e.target.value ? Number(e.target.value) : '')}
-          className="w-full max-w-md px-4 py-2.5 rounded-xl bg-card-bg border border-card-border focus:outline-none focus:ring-2 focus:ring-accent/40"
-        >
-          <option value="">Choose a course...</option>
-          {courses.map((c) => (
-            <option key={c.id} value={c.id}>{c.title}</option>
-          ))}
-        </select>
-      </div>
+      <CourseSelector
+        courses={courses}
+        selectedCourse={selectedCourse}
+        onSelect={(id) => setSelectedCourse(id)}
+        label="Your Courses"
+        subtitle="Select a course to message its students"
+      />
 
       {selectedCourse && (
         <form onSubmit={handleSend} className="space-y-6">

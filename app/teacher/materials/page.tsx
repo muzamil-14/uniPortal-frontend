@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { apiFetch, apiUpload } from '@/lib/api';
 import { useToast } from '@/lib/toast-context';
 import { useConfirm } from '@/lib/confirm-context';
+import CourseSelector from '@/components/course-selector';
 
 interface Course {
   id: number;
@@ -101,19 +102,13 @@ export default function TeacherMaterialsPage() {
       </div>
 
       {/* Course selector */}
-      <div>
-        <label className="block text-sm font-medium mb-2">Select Course</label>
-        <select
-          value={selectedCourse}
-          onChange={(e) => setSelectedCourse(e.target.value ? Number(e.target.value) : '')}
-          className="w-full max-w-md px-4 py-2.5 rounded-xl bg-card-bg border border-card-border focus:outline-none focus:ring-2 focus:ring-accent/40"
-        >
-          <option value="">Choose a course...</option>
-          {courses.map((c) => (
-            <option key={c.id} value={c.id}>{c.title}</option>
-          ))}
-        </select>
-      </div>
+      <CourseSelector
+        courses={courses}
+        selectedCourse={selectedCourse}
+        onSelect={(id) => setSelectedCourse(id)}
+        label="Your Courses"
+        subtitle="Select a course to manage materials"
+      />
 
       {selectedCourse && (
         <>

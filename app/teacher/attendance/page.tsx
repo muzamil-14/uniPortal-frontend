@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/lib/toast-context';
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import CourseSelector from '@/components/course-selector';
 
 interface Course {
   id: number;
@@ -144,42 +145,51 @@ export default function TeacherAttendancePage() {
         Mark Attendance
       </h1>
 
-      {/* Course & Date Selection */}
-      <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 mb-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-              Course
-            </label>
-            <select
-              value={selectedCourse || ''}
-              onChange={(e) => {
-                const val = Number(e.target.value);
-                if (val) loadStudents(val);
-              }}
-              className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white outline-none cursor-pointer"
-            >
-              <option value="">Choose a course...</option>
-              {courses.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.title}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-              Date
+      {/* Course Selection */}
+      {!selectedCourse && (
+        <div className="mb-8">
+          <CourseSelector
+            courses={courses}
+            selectedCourse={selectedCourse || ''}
+            onSelect={(id) => {
+              if (id) loadStudents(id as number);
+              else {
+                setSelectedCourse(null);
+                setStudents([]);
+              }
+            }}
+            label="Select Course"
+            subtitle="Choose a course to mark attendance"
+          />
+        </div>
+      )}
+
+      {selectedCourse && (
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <CourseSelector
+            courses={courses}
+            selectedCourse={selectedCourse}
+            onSelect={(id) => {
+              if (id) loadStudents(id as number);
+              else {
+                setSelectedCourse(null);
+                setStudents([]);
+              }
+            }}
+          />
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              Date:
             </label>
             <input
               type="date"
               value={date}
               onChange={(e) => handleDateChange(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white outline-none"
+              className="px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white outline-none"
             />
           </div>
         </div>
-      </div>
+      )}
 
       {/* Attendance Table */}
       {selectedCourse && (
