@@ -11,6 +11,10 @@ interface ResultCourse {
   creditHours: number;
   grade: string;
   marks: number | null;
+  finalMarks: number | null;
+  midMarks: number | null;
+  quizMarks: number | null;
+  assignmentMarks: number | null;
   gradePoints: number;
 }
 
@@ -101,7 +105,11 @@ export default function ResultCardPage() {
                 <th className="text-left py-3 px-3 font-semibold">Course</th>
                 <th className="text-left py-3 px-3 font-semibold">Instructor</th>
                 <th className="text-center py-3 px-3 font-semibold">Credits</th>
-                <th className="text-center py-3 px-3 font-semibold">Marks</th>
+                <th className="text-center py-3 px-3 font-semibold">Finals<br/><span className="text-xs font-normal">(50%)</span></th>
+                <th className="text-center py-3 px-3 font-semibold">Mids<br/><span className="text-xs font-normal">(25%)</span></th>
+                <th className="text-center py-3 px-3 font-semibold">Quizzes<br/><span className="text-xs font-normal">(15%)</span></th>
+                <th className="text-center py-3 px-3 font-semibold">Assignments<br/><span className="text-xs font-normal">(10%)</span></th>
+                <th className="text-center py-3 px-3 font-semibold">Total</th>
                 <th className="text-center py-3 px-3 font-semibold">Grade</th>
                 <th className="text-center py-3 px-3 font-semibold">Points</th>
               </tr>
@@ -113,7 +121,11 @@ export default function ResultCardPage() {
                   <td className="py-3 px-3 font-medium">{c.courseTitle}</td>
                   <td className="py-3 px-3 text-zinc-500 dark:text-zinc-400">{c.instructor}</td>
                   <td className="py-3 px-3 text-center">{c.creditHours}</td>
-                  <td className="py-3 px-3 text-center">{c.marks !== null ? c.marks : '-'}</td>
+                  <td className="py-3 px-3 text-center">{c.finalMarks !== null ? c.finalMarks : '—'}</td>
+                  <td className="py-3 px-3 text-center">{c.midMarks !== null ? c.midMarks : '—'}</td>
+                  <td className="py-3 px-3 text-center">{c.quizMarks !== null ? c.quizMarks : '—'}</td>
+                  <td className="py-3 px-3 text-center">{c.assignmentMarks !== null ? c.assignmentMarks : '—'}</td>
+                  <td className="py-3 px-3 text-center font-semibold">{c.marks !== null ? c.marks : '—'}</td>
                   <td className={`py-3 px-3 text-center font-bold ${gradeColor(c.gradePoints)}`}>{c.grade}</td>
                   <td className="py-3 px-3 text-center">{c.gradePoints.toFixed(1)}</td>
                 </tr>

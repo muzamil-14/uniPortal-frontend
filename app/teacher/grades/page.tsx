@@ -17,6 +17,10 @@ interface EnrolledStudent {
   id: number;
   grade: string | null;
   marks: number | null;
+  finalMarks: number | null;
+  midMarks: number | null;
+  quizMarks: number | null;
+  assignmentMarks: number | null;
   status: string;
   userId: number;
   courseId: number;
@@ -77,18 +81,34 @@ export default function TeacherGradesPage() {
     userId: number,
     courseId: number,
     grade: string,
-    marks?: number,
+    finalMarks?: number,
+    midMarks?: number,
+    quizMarks?: number,
+    assignmentMarks?: number,
   ) => {
     try {
       const updated = await apiFetch(
         `/enrollments/courses/${courseId}/users/${userId}/grade`,
         {
           method: 'PATCH',
-          body: JSON.stringify({ grade, marks }),
+          body: JSON.stringify({ grade, finalMarks, midMarks, quizMarks, assignmentMarks }),
         },
       );
       setStudents((prev) =>
-        prev.map((s) => (s.id === updated.id ? { ...s, grade: updated.grade, marks: updated.marks, status: updated.status } : s)),
+        prev.map((s) =>
+          s.id === updated.id
+            ? {
+                ...s,
+                grade: updated.grade,
+                marks: updated.marks,
+                finalMarks: updated.finalMarks,
+                midMarks: updated.midMarks,
+                quizMarks: updated.quizMarks,
+                assignmentMarks: updated.assignmentMarks,
+                status: updated.status,
+              }
+            : s,
+        ),
       );
       toast.success('Grade updated — course marked as completed for this student');
     } catch (err: unknown) {
@@ -142,24 +162,16 @@ export default function TeacherGradesPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50">
-                      <th className="text-left p-4 font-medium text-zinc-500 dark:text-zinc-400">
-                        Student
-                      </th>
-                      <th className="text-left p-4 font-medium text-zinc-500 dark:text-zinc-400">
-                        Email
-                      </th>
-                      <th className="text-center p-4 font-medium text-zinc-500 dark:text-zinc-400">
-                        Status
-                      </th>
-                      <th className="text-center p-4 font-medium text-zinc-500 dark:text-zinc-400">
-                        Marks
-                      </th>
-                      <th className="text-center p-4 font-medium text-zinc-500 dark:text-zinc-400">
-                        Grade
-                      </th>
-                      <th className="text-center p-4 font-medium text-zinc-500 dark:text-zinc-400">
-                        Actions
-                      </th>
+                      <th className="text-left p-4 font-medium text-zinc-500 dark:text-zinc-400">Student</th>
+                      <th className="text-left p-4 font-medium text-zinc-500 dark:text-zinc-400">Email</th>
+                      <th className="text-center p-4 font-medium text-zinc-500 dark:text-zinc-400">Status</th>
+                      <th className="text-center p-4 font-medium text-zinc-500 dark:text-zinc-400">Finals<br/><span className="text-xs font-normal">(50%)</span></th>
+                      <th className="text-center p-4 font-medium text-zinc-500 dark:text-zinc-400">Mids<br/><span className="text-xs font-normal">(25%)</span></th>
+                      <th className="text-center p-4 font-medium text-zinc-500 dark:text-zinc-400">Quizzes<br/><span className="text-xs font-normal">(15%)</span></th>
+                      <th className="text-center p-4 font-medium text-zinc-500 dark:text-zinc-400">Assignments<br/><span className="text-xs font-normal">(10%)</span></th>
+                      <th className="text-center p-4 font-medium text-zinc-500 dark:text-zinc-400">Total</th>
+                      <th className="text-center p-4 font-medium text-zinc-500 dark:text-zinc-400">Grade</th>
+                      <th className="text-center p-4 font-medium text-zinc-500 dark:text-zinc-400">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -191,10 +203,51 @@ function StudentGradeRow({
   onSave,
 }: {
   student: EnrolledStudent;
-  onSave: (userId: number, courseId: number, grade: string, marks?: number) => void;
+  onSave: (
+    userId: number,
+    courseId: number,
+    grade: string,
+    finalMarks?: number,
+    midMarks?: number,
+    quizMarks?: number,
+    assignmentMarks?: number,
+  ) => void;
 }) {
   const [grade, setGrade] = useState(student.grade || '');
-  const [marks, setMarks] = useState(student.marks !== null ? String(student.marks) : '');
+  const [finalMarks, setFinalMarks] = useState(
+    student.finalMarks !== null ? String(student.finalMarks) : '',
+  );
+  const [midMarks, setMidMarks] = useState(
+    student.midMarks !== null ? String(student.midMarks) : '',
+  );
+  const [quizMarks, setQuizMarks] = useState(
+    student.quizMarks !== null ? String(student.quizMarks) : '',
+  );
+  const [assignmentMarks, setAssignmentMarks] = useState(
+    student.assignmentMarks !== null ? String(student.assignmentMarks) : '',
+  );
+
+  const fm = finalMarks ? parseFloat(finalMarks) : 0;
+  const mm = midMarks ? parseFloat(midMarks) : 0;
+  const qm = quizMarks ? parseFloat(quizMarks) : 0;
+  const am = assignmentMarks ? parseFloat(assignmentMarks) : 0;
+  const hasAny = finalMarks || midMarks || quizMarks || assignmentMarks;
+  const total = hasAny
+    ? Math.round((0.5 * fm + 0.25 * mm + 0.15 * qm + 0.1 * am) * 100) / 100
+    : null;
+
+  const markInput = (value: string, onChange: (v: string) => void, max: number) => (
+    <input
+      type="number"
+      step="0.01"
+      min="0"
+      max={max}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-16 mx-auto block px-1 py-1 rounded border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white text-sm text-center outline-none"
+      placeholder="—"
+    />
+  );
 
   return (
     <tr className="hover:bg-zinc-50 dark:hover:bg-zinc-800/30">
@@ -213,17 +266,12 @@ function StudentGradeRow({
           {student.status}
         </span>
       </td>
-      <td className="p-4">
-        <input
-          type="number"
-          step="0.01"
-          min="0"
-          max="100"
-          value={marks}
-          onChange={(e) => setMarks(e.target.value)}
-          className="w-20 mx-auto block px-2 py-1 rounded border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white text-sm text-center outline-none"
-          placeholder="—"
-        />
+      <td className="p-4">{markInput(finalMarks, setFinalMarks, 100)}</td>
+      <td className="p-4">{markInput(midMarks, setMidMarks, 100)}</td>
+      <td className="p-4">{markInput(quizMarks, setQuizMarks, 100)}</td>
+      <td className="p-4">{markInput(assignmentMarks, setAssignmentMarks, 100)}</td>
+      <td className="p-4 text-center font-semibold text-zinc-700 dark:text-zinc-200">
+        {total !== null ? total : student.marks !== null ? student.marks : '—'}
       </td>
       <td className="p-4">
         <select
@@ -247,7 +295,10 @@ function StudentGradeRow({
               student.user.id,
               student.courseId,
               grade,
-              marks ? parseFloat(marks) : undefined,
+              finalMarks ? parseFloat(finalMarks) : undefined,
+              midMarks ? parseFloat(midMarks) : undefined,
+              quizMarks ? parseFloat(quizMarks) : undefined,
+              assignmentMarks ? parseFloat(assignmentMarks) : undefined,
             );
           }}
           disabled={!grade}

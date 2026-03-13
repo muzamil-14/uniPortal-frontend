@@ -9,6 +9,10 @@ interface GradeEntry {
   id: number;
   grade: string | null;
   marks: number | null;
+  finalMarks: number | null;
+  midMarks: number | null;
+  quizMarks: number | null;
+  assignmentMarks: number | null;
   status: string;
   enrolledAt: string;
   course: {
@@ -127,24 +131,16 @@ export default function MyGradesPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50">
-                <th className="text-left p-4 font-medium text-zinc-500 dark:text-zinc-400">
-                  Course
-                </th>
-                <th className="text-left p-4 font-medium text-zinc-500 dark:text-zinc-400">
-                  Instructor
-                </th>
-                <th className="text-center p-4 font-medium text-zinc-500 dark:text-zinc-400">
-                  Credits
-                </th>
-                <th className="text-center p-4 font-medium text-zinc-500 dark:text-zinc-400">
-                  Marks
-                </th>
-                <th className="text-center p-4 font-medium text-zinc-500 dark:text-zinc-400">
-                  Grade
-                </th>
-                <th className="text-center p-4 font-medium text-zinc-500 dark:text-zinc-400">
-                  Points
-                </th>
+                <th className="text-left p-4 font-medium text-zinc-500 dark:text-zinc-400">Course</th>
+                <th className="text-left p-4 font-medium text-zinc-500 dark:text-zinc-400">Instructor</th>
+                <th className="text-center p-4 font-medium text-zinc-500 dark:text-zinc-400">Credits</th>
+                <th className="text-center p-4 font-medium text-zinc-500 dark:text-zinc-400">Finals<br/><span className="text-xs font-normal">(50%)</span></th>
+                <th className="text-center p-4 font-medium text-zinc-500 dark:text-zinc-400">Mids<br/><span className="text-xs font-normal">(25%)</span></th>
+                <th className="text-center p-4 font-medium text-zinc-500 dark:text-zinc-400">Quizzes<br/><span className="text-xs font-normal">(15%)</span></th>
+                <th className="text-center p-4 font-medium text-zinc-500 dark:text-zinc-400">Assignments<br/><span className="text-xs font-normal">(10%)</span></th>
+                <th className="text-center p-4 font-medium text-zinc-500 dark:text-zinc-400">Total</th>
+                <th className="text-center p-4 font-medium text-zinc-500 dark:text-zinc-400">Grade</th>
+                <th className="text-center p-4 font-medium text-zinc-500 dark:text-zinc-400">Points</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -163,6 +159,18 @@ export default function MyGradesPage() {
                     {entry.course.creditHours}
                   </td>
                   <td className="p-4 text-center text-zinc-600 dark:text-zinc-300">
+                    {entry.finalMarks !== null ? entry.finalMarks : '—'}
+                  </td>
+                  <td className="p-4 text-center text-zinc-600 dark:text-zinc-300">
+                    {entry.midMarks !== null ? entry.midMarks : '—'}
+                  </td>
+                  <td className="p-4 text-center text-zinc-600 dark:text-zinc-300">
+                    {entry.quizMarks !== null ? entry.quizMarks : '—'}
+                  </td>
+                  <td className="p-4 text-center text-zinc-600 dark:text-zinc-300">
+                    {entry.assignmentMarks !== null ? entry.assignmentMarks : '—'}
+                  </td>
+                  <td className="p-4 text-center font-semibold text-zinc-700 dark:text-zinc-200">
                     {entry.marks !== null ? entry.marks : '—'}
                   </td>
                   <td className="p-4 text-center">

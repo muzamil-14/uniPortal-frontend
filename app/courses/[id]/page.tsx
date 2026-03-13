@@ -3,7 +3,6 @@
 import { apiFetch } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/lib/toast-context';
-import { useConfirm } from '@/lib/confirm-context';
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 
@@ -29,10 +28,18 @@ interface Material {
   createdAt: string;
 }
 
+interface EnrollmentCheckResponse {
+  enrolled: boolean;
+  canDrop: boolean;
+  status: string | null;
+  semesterNumber: number | null;
+  passedPreviously: boolean;
+  message: string | null;
+}
+
 export default function CourseDetailPage() {
   const { user, loading: authLoading } = useAuth();
   const toast = useToast();
-  const confirmDialog = useConfirm();
   const router = useRouter();
   const params = useParams();
   const courseId = params.id as string;
@@ -42,6 +49,8 @@ export default function CourseDetailPage() {
   const [enrolled, setEnrolled] = useState(false);
   const [enrolling, setEnrolling] = useState(false);
   const [materials, setMaterials] = useState<Material[]>([]);
+  const [enrollmentStatus, setEnrollmentStatus] =
+    useState<EnrollmentCheckResponse | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -57,8 +66,10 @@ export default function CourseDetailPage() {
         .then(([courseData, enrollData]) => {
           setCourse(courseData);
           if (enrollData) {
-            setEnrolled(enrollData.enrolled);
-            if (enrollData.enrolled) {
+            const status = enrollData as EnrollmentCheckResponse;
+            setEnrollmentStatus(status);
+            setEnrolled(status.enrolled);
+            if (status.enrolled && !status.passedPreviously) {
               apiFetch(`/course-materials/course/${courseId}`).then(setMaterials);
             }
           }
@@ -72,29 +83,14 @@ export default function CourseDetailPage() {
     setEnrolling(true);
     try {
       await apiFetch(`/enrollments/courses/${courseId}`, { method: 'POST' });
-      setEnrolled(true);
+      const status = (await apiFetch(
+        `/enrollments/courses/${courseId}/check`,
+      )) as EnrollmentCheckResponse;
+      setEnrollmentStatus(status);
+      setEnrolled(status.enrolled);
       toast.success('Successfully enrolled in course');
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Enrollment failed');
-    } finally {
-      setEnrolling(false);
-    }
-  };
-
-  const handleUnenroll = async () => {
-    const ok = await confirmDialog({
-      title: 'Drop Course',
-      message: 'Are you sure you want to drop this course?',
-      confirmLabel: 'Drop',
-    });
-    if (!ok) return;
-    setEnrolling(true);
-    try {
-      await apiFetch(`/enrollments/courses/${courseId}`, { method: 'DELETE' });
-      setEnrolled(false);
-      toast.success('Successfully dropped the course');
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Failed to unenroll');
     } finally {
       setEnrolling(false);
     }
@@ -162,22 +158,27 @@ export default function CourseDetailPage() {
         {user?.role === 'student' && (
         <>
         {enrolled ? (
-          <div className="flex items-center gap-4">
-            <span className="px-4 py-2.5 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-medium">
+          <div className="space-y-3">
+            <span className="inline-flex px-4 py-2.5 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-medium">
               ✓ Enrolled
             </span>
-            <button
-              onClick={handleUnenroll}
-              disabled={enrolling}
-              className="px-4 py-2.5 rounded-lg border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 transition-colors cursor-pointer"
-            >
-              {enrolling ? 'Processing...' : 'Drop Course'}
-            </button>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              {enrollmentStatus?.message || 'This course is already selected in your semester plan.'}
+            </p>
+          </div>
+        ) : enrollmentStatus?.passedPreviously ? (
+          <div className="space-y-3">
+            <span className="inline-flex px-4 py-2.5 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium">
+              ✓ Passed Previously
+            </span>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              {enrollmentStatus.message || 'You have already cleared this course in a previous semester.'}
+            </p>
           </div>
         ) : (
           <button
             onClick={handleEnroll}
-            disabled={enrolling || !course.isActive}
+            disabled={enrolling || !course.isActive || enrollmentStatus?.passedPreviously}
             className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 text-white font-medium hover:from-indigo-600 hover:to-violet-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md shadow-indigo-500/20 cursor-pointer"
           >
             {enrolling ? 'Enrolling...' : 'Enroll in Course'}
